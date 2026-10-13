@@ -2,7 +2,7 @@ from pathlib import Path
 import pandas as pd
 
 project_folder = Path(__file__).resolve().parent.parent
-processed_folder = project_folder / "data" / "processed"
+processed_folder = project_folder / "data" / "processed_1m"
 
 songs = pd.read_csv(processed_folder / "tracks_cleaned.csv")
 

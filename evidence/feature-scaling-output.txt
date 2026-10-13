@@ -1,0 +1,6 @@
+Tracks prepared: 1159748
+SCALED FEATURE RANGES
+     danceability  energy  loudness  speechiness  acousticness  instrumentalness  liveness  valence  tempo
+min           0.0     0.0       0.0          0.0           0.0               0.0       0.0      0.0    0.0
+max           1.0     1.0       1.0          1.0           1.0               1.0       1.0      1.0    1.0
+Saved scaled features and scaling settings.

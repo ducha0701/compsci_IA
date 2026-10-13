@@ -1,0 +1,134 @@
+# Development log
+
+## Dataset inspection, cleaning and feature preparation — 12–13 October 2026
+
+### Objective
+Prepare the Kaggle Spotify dataset for use in a music recommendation engine, preserving the original CSV and creating reproducible processing scripts.
+
+### Environment
+The project is stored in C:\CS_IA. I created a Python virtual environment using Python 3.14.2 and installed pandas 3.0.6. NumPy 2.5.4 was installed as a dependency. I added .venv/ and __pycache__/ to .gitignore to exclude generated environment files from version control.
+
+### Dataset inspection
+I created scripts/inspect_dataset.py to inspect the CSV’s dimensions, column types, sample records, missing values and duplicates.
+
+The dataset contained 114,000 rows and 20 columns. There were 450 exact duplicate rows. One record was missing its artist, album name and track name and also had a duration of zero.
+
+After removing exact duplicates in memory, there were 113,550 rows and 89,741 distinct track IDs. Inspection showed that a track could appear under several genre labels. For example, “Comedy” by Gen Hoshino appeared under acoustic, j-pop, singer-songwriter and songwriter.
+
+I checked whether repeated track IDs had conflicting values in other columns. Popularity differed for 720 track IDs; the other checked columns agreed.
+
+### Cleaning decisions and implementation
+I created scripts/preprocess_dataset.py with these rules:
+
+1. Remove records missing track_id, artists or track_name.
+2. Remove exact duplicate rows.
+3. Group remaining records by track_id.
+4. Preserve all distinct genre labels in alphabetical order, separated by semicolons.
+5. Average popularity values within each track ID.
+6. Retain the first value for other columns because inspection showed those values agreed.
+
+Combining genre labels avoids losing information when consolidating repeated tracks. Averaging popularity is a reproducible compromise because the dataset does not provide timestamps identifying the latest popularity value.
+
+The cleaned dataset was saved separately as data/processed/tracks_cleaned.csv. The original CSV was not modified.
+
+### Cleaning validation
+The script reported:
+- Original rows: 114,000
+- Rows excluded for missing required information: 1
+- Exact duplicates removed: 450
+- Cleaned tracks: 89,740
+
+Assertions confirmed unique track IDs, no missing required identification fields and preservation of all retained distinct track IDs. A displayed example confirmed that “Comedy” retained all four genre labels.
+
+### Feature preparation
+I selected nine initial audio features: danceability, energy, loudness, speechiness, acousticness, instrumentalness, liveness, valence and tempo.
+
+Their original ranges differed substantially. I applied Min–Max scaling to put each selected feature on a range from 0 to 1.
+
+I created scripts/prepare_features.py and saved:
+- data/processed/audio_features_scaled.csv
+- data/processed/audio_scaling_settings.csv
+
+### Scaling validation
+Assertions checked for missing feature values, zero feature ranges, changed row counts and scaled values outside 0–1. All checks passed.
+
+The output contained 89,740 tracks. Every selected feature had a scaled minimum of 0 and maximum of 1.
+
+### Assistance and understanding
+Codex provided code examples and explanations. I created and ran the scripts in VS Code and reviewed their outputs. The key distinction I learned was that exact duplicate rows differ from repeated track IDs: repeated IDs can contain useful additional genre labels.
+
+### Limitations and next steps
+Recommendation quality has not yet been tested. The feature selection and scaling method are initial choices that may need revision following evaluation. Zero tempo values remain in the dataset and require investigation before deciding whether to treat them differently.
+
+The next implementation step is a small song-to-song similarity baseline, followed by evaluation before adding user preferences, clustering or the web application.
+
+### Evidence files
+- dataset-inspection-output.txt
+- preprocessing-output.txt
+- feature-scaling-output.txt
+
+### Catalogue coverage check — 13 October 2026
+
+I checked ten familiar songs using both track title and artist, ignoring capitalization, spaces and punctuation. None of the ten combinations was found in the cleaned dataset, although all six artists were represented.
+
+This indicates limited coverage for this test sample. The sample reflects my musical preferences and does not establish coverage across all users. Before confirming the dataset choice, I need to test songs relevant to my client and compare alternative datasets.
+
+The similarity calculation runs successfully, but catalogue suitability and recommendation usefulness remain unvalidated.
+
+
+
+## Dataset replacement and recommendation search — 13–14 October 2026
+
+### Problem identified
+The original dataset supported the similarity calculation but lacked several familiar songs. A title-and-artist coverage check found none of my ten test songs. This showed that a working algorithm alone was insufficient: users also need to find songs they know when entering preferences.
+
+### Dataset comparison and decision
+I inspected two replacement candidates.
+
+The first, Rodolfo Figueroa’s Spotify 1.2M+ Songs dataset, contained 1,204,025 rows but did not contain my ten test songs. It also lacked genre and popularity columns, so I rejected it as a replacement.
+
+I selected Amitansh Joshi’s Spotify 1 Million Tracks dataset:
+https://www.kaggle.com/datasets/amitanshjoshi/spotify-1million-tracks
+
+It contained 1,159,764 unique track IDs, genre labels, popularity and the nine audio features used by my baseline. Four of my ten test songs were found, along with several familiar older songs or remastered versions. This demonstrated improved coverage for the test sample.
+
+### Inspection and cleaning
+I created scripts/inspect_candidate.py to check missing values, duplicates, feature ranges and non-finite numerical values.
+
+Inspection found:
+- 15 missing artist names.
+- One missing track name.
+- No missing values in the nine selected audio features.
+- No infinite audio feature values.
+- No exact duplicate rows after excluding the exported index column.
+- Unique track IDs throughout the dataset.
+
+I created scripts/preprocess_new_dataset.py to remove the exported index, rename artist_name to artists and genre to track_genre, strip whitespace from identification fields and exclude records missing required identification.
+
+The column renaming preserved compatibility with the existing recommender. Unlike the original dataset, this candidate did not require grouping repeated track IDs or averaging conflicting popularity values.
+
+### Cleaning validation
+The script excluded 16 records and saved 1,159,748 tracks to data/processed_1m/tracks_cleaned.csv.
+
+Assertions confirmed unique track IDs, complete required identification fields, finite audio features and non-missing genre labels.
+
+### Feature scaling
+I created scripts/prepare_features_1m.py and recalculated Min–Max scaling using the new dataset’s ranges.
+
+The script retained all 1,159,748 cleaned tracks. Each of the nine selected features had a scaled minimum of 0 and maximum of 1. New scaled features and scaling settings were saved in data/processed_1m/.
+
+### Recommender and search changes
+I changed scripts/recommend_similar.py to load the new processed files.
+
+Searching only by title displayed the first 20 matches, which hid the intended “Magnolia” entry. I added an optional artist filter before limiting the displayed results. Searching for “Magnolia” and “Playboi Carti” successfully located the intended track.
+
+### Limitations and evaluation
+The replacement improves tested coverage but remains incomplete. Artist-name checks found no entries for Tame Impala, Kanye West, Juice WRLD or Yeat under those names.
+
+The coverage sample reflects my preferences and does not establish coverage for every user. Client-specific coverage and recommendation usefulness still require evaluation. High cosine-similarity scores do not represent a probability that a user will enjoy a song.
+
+### Assistance
+Codex helped provide and explain the inspection, preprocessing, scaling and search code. I ran the scripts in VS Code and reviewed their outputs.
+
+### Next step
+Test the ten recommendations for several available songs and record whether they are useful before implementing user ratings and taste clustering.
