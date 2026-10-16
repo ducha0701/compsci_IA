@@ -1,0 +1,16 @@
+SELECTED SONG
+track_name         Magnolia
+artists       Playboi Carti
+
+TEN SIMILAR SONGS
+                                                                             track_name      artists  similarity
+                                                              First Night (feat. Mouse)       Webbie      0.9992
+                                                                              Disappear Bezz Believe      0.9992
+                                                                            Sky Dweller      EST Gee      0.9990
+                                                                    Premonition - Intro       Eminem      0.9987
+                                                                            Where Ya At Chingo Bling      0.9985
+In Love With A Stripper (Remix) (feat. Pimp C, Paul Wall, Twista, R. Kelly & Too $hort)       T-Pain      0.9985
+                                                                         Flat Baty Gyal  S.A. Finest      0.9982
+                                                                        Quick Freestyle  iamjakehill      0.9979
+                                                                                   Bang      The Bug      0.9979
+                                                                           Gutter Music      Starkey      0.9978

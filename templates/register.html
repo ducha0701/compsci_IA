@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Create account</title>
+  </head>
+  <body>
+    <h1>Create account</h1>
+
+    <form method="post">
+      {{ form.hidden_tag() }} {% for field in [ form.username, form.password,
+      form.confirm_password ] %}
+      <p>
+        {{ field.label }}<br />
+        {{ field() }}
+      </p>
+
+      {% for error in field.errors %}
+      <p role="alert">{{ error }}</p>
+      {% endfor %} {% endfor %} {{ form.submit() }}
+    </form>
+
+    <p><a href="{{ url_for('home') }}">Back to home</a></p>
+  </body>
+</html>

@@ -132,3 +132,47 @@ Codex helped provide and explain the inspection, preprocessing, scaling and sear
 
 ### Next step
 Test the ten recommendations for several available songs and record whether they are useful before implementing user ratings and taste clustering.
+
+
+
+Genre-label reliability check
+
+After a recommendation displayed “Sky Dweller” by EST Gee as k-pop, I inspected genre-label counts for four artists.
+
+Playboi Carti: 60 hip-hop entries.
+
+EST Gee: 63 k-pop and 29 hip-hop entries.
+
+Eminem: 212 hip-hop entries.
+
+Drake: 251 hip-hop and 8 pop entries.
+
+The repeated suspicious labels for EST Gee suggest that genre metadata may be unreliable in parts of the dataset. I will not use these labels as a strict recommendation filter until their reliability is investigated. The current baseline uses numerical audio features, so its ranking is unaffected by genre labels.
+
+the local MySQL connection test succeeded and the application database was created
+
+the users and ratings tables were created, the first Flask route worked, and the home page was moved into an HTML template once you’ve tested this step.
+
+Created a dedicated application database account with SELECT, INSERT, UPDATE and DELETE permissions on music_recommender.
+
+
+16 October 2026 — Accounts and database integration
+
+Created the users and ratings tables in MySQL. Connected Python and
+Flask using a dedicated application account, with credentials stored
+in an ignored .env file.
+
+Implemented registration with server-side validation, password hashing
+and CSRF protection. Implemented login using stored password hashes
+and a session containing the user ID and username.
+
+Added a protected dashboard and a CSRF-protected POST logout form.
+
+Tests passed:
+- Successful login redirects to the dashboard.
+- The dashboard displays the logged-in username.
+- Logout returns to the home page and clears the login session.
+- Visiting /dashboard after logout redirects to login.
+
+Next: add song search to the dashboard, then save ratings linked to
+the logged-in user's ID.

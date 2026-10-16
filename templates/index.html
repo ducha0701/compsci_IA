@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Music Recommender</title>
+  </head>
+  <body>
+    <h1>Music Recommender</h1>
+    <p>Discover songs based on your musical preferences.</p>
+    <p><a href="{{ url_for('register') }}">Create account</a></p>
+    {% if session.get("user_id") %}
+    <p>Logged in as {{ session["username"] }}.</p>
+    <p><a href="{{ url_for('dashboard') }}">Your dashboard</a></p>
+    {% else %}
+    <p><a href="{{ url_for('login') }}">Log in</a></p>
+    {% endif %}
+    <p>Registered users: {{ user_count }}</p>
+  </body>
+</html>
