@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import PasswordField, StringField, SubmitField
+from wtforms import PasswordField, StringField, SubmitField, HiddenField, SelectField
 from wtforms.validators import (
     DataRequired,
     EqualTo,
@@ -50,6 +50,20 @@ class LoginForm(FlaskForm):
     )
 
     submit = SubmitField("Log in")
+
+class SongRatingForm(FlaskForm):
+    track_id = HiddenField(
+        validators=[DataRequired()]
+    )
+    
+    score = SelectField(
+        "Your rating",
+        choices=[(1, "1"), (2, "2"), (3, "3"), (4, "4"), (5, "5")],
+        coerce=int,
+        validators=[DataRequired()]
+    )
+
+    submit = SubmitField("Save score")
 
 class LogoutForm(FlaskForm):
     submit = SubmitField("Log out")

@@ -176,3 +176,135 @@ Tests passed:
 
 Next: add song search to the dashboard, then save ratings linked to
 the logged-in user's ID.
+
+17–20 October 2026 — Dashboard song search and rating storage
+
+Objective
+Connect the song catalogue to the website and allow authenticated users to save and update song ratings.
+
+Catalogue loading and search
+Created catalogue.py to load track_id, track_name and artists from data/processed_1m/tracks_cleaned.csv. Loading only these columns avoids loading unnecessary audio features for searching. A terminal check confirmed 1,159,748 rows and three columns.
+
+Implemented search_songs() with optional title and artist filters. Searches use case-insensitive, literal substring matching. Both filters are applied before limiting results to 20 rows, preventing an intended song from being excluded before artist filtering.
+
+Connected the dashboard GET form to Flask using request.args. Passed query values back to the template so the inputs remain visible after submission. Converted matching DataFrame rows into dictionaries for the template to display.
+
+Search validation and testing
+Added separate displays for matching results, no matching songs and invalid search inputs. Empty searches display neither results nor an error.
+
+Searching for “a” in both fields produced overly broad results. Added server-side validation requiring at least one field to contain two or more characters. Invalid searches display a validation message without running the catalogue search.
+
+Tests passed:
+
+Magnolia / Playboi Carti displays the intended song.
+
+A made-up title displays the no-matches message.
+
+Empty fields display neither results nor an error.
+
+One-character inputs in both fields display only the validation message.
+
+A short title can still be searched with a sufficiently specific artist.
+
+Rating form and validation
+Added SongRatingForm in forms.py, containing a hidden track_id field, an integer-coerced score dropdown with choices 1–5 and a submit button.
+
+Displayed a separate POST form beside each song result. Each form includes a CSRF token and the corresponding track ID.
+
+Created the /rate route. It checks that the user is logged in and validates the submitted form. Added track_exists() in catalogue.py to reject IDs absent from the catalogue, because hidden form fields can be modified by the browser.
+
+Database storage
+Implemented a parameterized INSERT into the ratings table. ON DUPLICATE KEY UPDATE changes the existing rating when the same user rates the same track again.
+
+The user ID comes from the login session rather than a submitted field. The track ID and score come from the validated form.
+
+The transaction commits after successful execution. Errors trigger rollback and are raised again. Cursor and connection cleanup run through finally blocks. The successful redirect is outside finally so it cannot suppress a database error.
+
+Rating tests passed
+
+A first rating creates a database row.
+
+Submitting a different rating for the same song and account updates that row without creating a duplicate.
+
+Another account can rate the same song independently, producing a separate row with a different user_id.
+
+Database results were checked in MySQL Workbench.
+
+Debugging and understanding
+Corrected an artist filter that accidentally used the title query.
+Corrected SQL that mixed Python expressions with database column names.
+Matched four SQL placeholders with four supplied values.
+Learned that return ends a function immediately, and that returning from finally can suppress errors.
+Learned that AUTO_INCREMENT user IDs can contain gaps and do not represent the number of accounts.
+
+Assistance
+Used Codex explanations, examples and code reviews. For the recent search and rating features, I wrote project-specific adaptations and revised them following feedback. Some connection and cleanup structures were supplied as examples or scaffolding.
+
+Current progress and next step
+Song search and rating insertion/update are working. Wrote a parameterized SELECT statement to retrieve the logged-in user’s track IDs and ratings, but have not yet executed it or displayed the results.
+
+Next: fetch those ratings, match track IDs to song metadata and display a “My ratings” section. Personalized recommendations and clustering remain unimplemented.
+
+20 October 2026 — Displaying saved ratings and starting personalization
+
+Retrieving user ratings
+Extended dashboard() in app.py to execute the parameterized SELECT query for the logged-in user's track IDs and ratings. Used a dictionary cursor and fetchall() to retrieve all matching records. Cursor and connection cleanup are handled with finally blocks.
+
+Matching ratings to catalogue information
+Implemented get_rated_songs(user_ratings) in catalogue.py.
+
+The function:
+- Builds a dictionary mapping track IDs to ratings.
+- Selects matching catalogue rows using isin().
+- Copies the selected rows to avoid modifying the shared catalogue.
+- Uses map() to attach each track's rating.
+- Returns dictionaries containing song metadata and ratings for the template.
+
+During development, corrected a reference to an undefined rated_songs variable by selecting from the existing songs DataFrame.
+
+Helper tests
+A supplied rating for Magnolia returned its title, artist, track ID and the expected rating of 4. An empty input list returned an empty list. This helper test did not modify the database.
+
+Dashboard display
+Connected get_rated_songs() to dashboard() and passed its output to dashboard.html.
+
+Added a “My ratings” section outside the search-results conditions so saved ratings remain visible without entering a search. Added an empty-state message for accounts without ratings.
+
+Browser tests passed:
+- Saved ratings appeared without performing a search.
+- Submitting a changed rating updated the displayed score.
+- Each account displayed only its own ratings.
+- An account without ratings displayed the empty-state message.
+
+Initial personalization decision
+Created personalization.py and implemented get_liked_track_ids(user_ratings) using a list comprehension.
+
+The initial rule selects ratings of 4 or 5 as positive preferences. Ratings of 1–3 will not contribute to the initial positive profile; this does not mean a rating of 3 represents dislike.
+
+Planned recommendation behavior is to exclude all previously rated tracks from candidates. This exclusion has not yet been implemented.
+
+The liked-ID function has been reviewed but still needs execution tests, including the 3/4 boundary and empty input. Personalized recommendation generation and clustering are not yet implemented.
+
+Assistance
+Used Codex syntax examples and explanations to write project-specific functions and template changes. Codex reviewed the saved code and identified errors. Connection-management scaffolding and test commands were also provided.
+
+Next step
+Test liked-track selection, then retrieve those tracks' scaled audio features to construct an initial preference profile.
+
+the dashboard displays personalized recommendations, handles users without positive ratings, and excludes previously rated tracks.
+
+With the same six liked songs, K-Means formed clusters of five songs and one song. Three recommendations judged poorly suited to my rap preferences appeared with clustered scoring but disappeared when I restored the single-profile baseline. Further listening comparison is needed before choosing the final method.
+
+The six liked songs formed clusters of five and one. Listening identified several weak recommendations from clustered scoring. Added a minimum-support fallback: if any cluster has fewer than three songs, return the overall mean profile. Tests confirmed a single nine-feature centre matching the baseline, and the website returned the same ranked recommendations. The threshold is a heuristic; improvement for other profiles remains unverified
+
+22 October 2026 — Recommendation diversity and feedback
+
+Implemented select_diverse_recommendations() to process ranked candidates in order, accept at most two tracks per exact artist label and return up to ten recommendations. Expanded the ranked candidate pool to 100 before applying this filter.
+
+A controlled test confirmed that third occurrences of an artist were skipped, accepted tracks retained their order, the requested limit was respected and empty input returned an empty list. Individual collaborators are not counted separately.
+
+Added rating forms beside recommended songs using the existing CSRF-protected /rate route.
+
+Browser testing confirmed that submitting a recommendation rating saved it, displayed the song in “My ratings” and excluded that track from the refreshed recommendations. The system recalculates recommendations using the updated ratings.
+
+Recommendation relevance still requires broader client evaluation.

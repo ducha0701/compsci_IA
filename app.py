@@ -1,11 +1,13 @@
 import os
-from flask import Flask, render_template, redirect, url_for, session
+from flask import Flask, render_template, redirect, url_for, session, request
 from db import get_connection
 from flask_wtf.csrf import CSRFProtect
 from mysql.connector import IntegrityError
 from werkzeug.security import generate_password_hash, check_password_hash
+from catalogue import search_songs, track_exists, get_rated_songs, get_recommendation_details, select_diverse_recommendations
+from personalization import recommend_tracks
 
-from forms import RegistrationForm, LoginForm, LogoutForm
+from forms import RegistrationForm, LoginForm, LogoutForm, SongRatingForm
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ["SECRET_KEY"]
@@ -109,12 +111,96 @@ def dashboard():
     if not session.get("user_id"):
         return redirect(url_for("login"))
 
+    sql = """
+        SELECT track_id, rating
+        FROM ratings
+        WHERE user_id = %s
+    """
+
+    values = (session["user_id"],)
+
+    connection = get_connection()
+
+    try:
+        cursor = connection.cursor(dictionary=True)
+        try:
+            cursor.execute(sql, values)
+            user_ratings = cursor.fetchall()
+        finally:
+            cursor.close()
+    finally:
+        connection.close()
+
+    rated_songs = get_rated_songs(user_ratings)
+    scored_tracks = recommend_tracks(user_ratings, use_clusters=True, limit=100)
+    recommendations = get_recommendation_details(scored_tracks)
+    recommendations = select_diverse_recommendations(recommendations)
+
+    title_query = request.args.get("title","").strip()
+    artist_query = request.args.get("artist","").strip()
+    results = []
+    search_error = None
+
+    if artist_query or title_query:
+        if len(artist_query) < 2 and len(title_query) < 2:
+            search_error = "Enter at least two characters in one field."
+        else:
+            matches = search_songs(title_query, artist_query)
+            results = matches.to_dict(orient="records")
+
     return render_template(
-        "dashboard.html",
+        "dashboard.html",title_query=title_query,
+        artist_query=artist_query,
+        results=results,
+        search_error = search_error,
+        rated_songs = rated_songs,
+        recommendations = recommendations,
+        rating_form=SongRatingForm(),
         logout_form=LogoutForm(),
     )
 
 
+@app.route("/rate", methods=["POST"])
+def rate_song():
+    if not session.get("user_id"):
+        return redirect(url_for("login"))
+
+    form = SongRatingForm()
+
+    if not form.validate_on_submit():
+        return "Invalid rating.", 400
+
+
+    if not track_exists(form.track_id.data):
+        return "Unknown song.", 400
+
+    sql = """
+        INSERT INTO ratings (user_id, track_id, rating)
+        VALUES (%s, %s, %s)
+        ON DUPLICATE KEY UPDATE rating = %s
+    """
+
+    values = (session["user_id"], form.track_id.data, form.score.data, form.score.data)
+
+    connection = get_connection()
+
+    try:
+        cursor = connection.cursor()
+        try:
+            cursor.execute(sql, values)
+            connection.commit()
+        finally:
+            cursor.close()
+    except Exception:
+        connection.rollback()
+        raise
+    finally:
+        connection.close()
+    
+    return redirect(url_for("dashboard"))
+
+
+    
 @app.route("/logout", methods=["POST"])
 def logout():
     form = LogoutForm()

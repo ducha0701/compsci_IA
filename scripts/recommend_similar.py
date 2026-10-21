@@ -18,7 +18,9 @@ assert set(songs["track_id"]) == set(features["track_id"]), (
 )
 
 # Connect song names and artists to their scaled audio features.
-tracks = songs[["track_id", "track_name", "artists"]].merge(
+tracks = songs[
+    ["track_id", "track_name", "artists", "track_genre"]
+].merge(
     features,
     on="track_id",
     validate="one_to_one",
@@ -93,7 +95,9 @@ scores = np.divide(
 # A song compared with itself should score approximately 1.
 assert np.isclose(scores[seed_index], 1.0), "Self-similarity check failed."
 
-results = tracks[["track_id", "track_name", "artists"]].copy()
+results = tracks[
+    ["track_id", "track_name", "artists", "track_genre"]
+].copy()
 results["similarity"] = scores
 
 # Exclude the selected track and zero-length vectors.
@@ -114,7 +118,7 @@ print(tracks.loc[seed_index, ["track_name", "artists"]].to_string())
 
 print("\nTEN SIMILAR SONGS")
 print(
-    recommendations[["track_name", "artists", "similarity"]]
+    recommendations[["track_name", "artists", "track_genre", "similarity"]]
     .round(4)
     .to_string(index=False)
 )
