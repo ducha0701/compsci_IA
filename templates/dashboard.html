@@ -23,7 +23,6 @@
           value="{{ artist_query }}"
         />
       </p>
-
       <button type="submit">Search</button>
     </form>
     {% if search_error %}
@@ -62,6 +61,7 @@
     {% else %}
     <p>You haven’t rated any songs yet</p>
     {% endif %}
+    <a href="{{ url_for('onboarding') }}">Set up your preferences</a>
 
     <h2>Recommended songs</h2>
     {% if recommendations %}

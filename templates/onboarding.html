@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Set up your music preferences</title>
+  </head>
+  <body>
+    <h1>Set up your music preferences</h1>
+    <p>
+      Find familiar songs and rate them to personalize your recommendations.
+    </p>
+    <p>Songs rated 4 or 5: {{ liked_count }}</p>
+    {% if liked_count >= 3 %}
+    <p>
+      Minimum number of songs rated has been reached. You may continue rating or
+      exit onboarding.
+    </p>
+    <a href="{{ url_for('dashboard') }}">Continue to recommendations</a>
+    {% else %}
+    <p>
+      Find and rate more familiar songs so future recommendations are more
+      accurate!
+    </p>
+    <a href="{{ url_for('dashboard') }}">Skip for now.</a>
+    {% endif %}
+    <form method="get" action="{{ url_for('onboarding') }}">
+      <p>
+        <label for="title">Song title</label>
+        <input id="title" name="title" type="text" value="{{ title_query }}" />
+      </p>
+
+      <p>
+        <label for="artist">Artist</label>
+        <input
+          id="artist"
+          name="artist"
+          type="text"
+          value="{{ artist_query }}"
+        />
+      </p>
+
+      <p>
+        <label for="genre">Genre</label>
+        <select id="genre" name="genre">
+          <option value="">All genres</option>
+          {% for genre in available_genres %} {% if genre == genre_query %}
+          <option value="{{ genre }}" selected>{{ genre }}</option>
+          {% else %}
+          <option value="{{ genre }}">{{ genre }}</option>
+          {% endif %} {% endfor %}
+        </select>
+      </p>
+
+      <button type="submit">Search</button>
+    </form>
+    {% if search_error %}
+    <p role="alert">{{ search_error }}</p>
+    {% elif results %}
+    <ul>
+      {% for song in results %}
+      <li>
+        {{ song["track_name"] }} — {{ song["artists"] }}
+        <form method="post" action="{{ url_for('rate_song') }}">
+          {{ rating_form.csrf_token }} {{
+          rating_form.track_id(value=song["track_id"], id=False) }} {{
+          rating_form.score(id=False, aria_label="Your score") }} {{
+          rating_form.submit(id=False) }}
+          <input type="hidden" name="source" value="onboarding" />
+        </form>
+      </li>
+      {% endfor %}
+    </ul>
+
+    {% elif title_query or artist_query or genre_query %}
+    <p>No matching songs found.</p>
+
+    {% endif %}
+  </body>
+</html>

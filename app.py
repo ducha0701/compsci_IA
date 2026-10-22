@@ -4,7 +4,7 @@ from db import get_connection
 from flask_wtf.csrf import CSRFProtect
 from mysql.connector import IntegrityError
 from werkzeug.security import generate_password_hash, check_password_hash
-from catalogue import search_songs, track_exists, get_rated_songs, get_recommendation_details, select_diverse_recommendations
+from catalogue import search_songs, track_exists, get_rated_songs, get_recommendation_details, select_diverse_recommendations, available_genres
 from personalization import recommend_tracks
 
 from forms import RegistrationForm, LoginForm, LogoutForm, SongRatingForm
@@ -97,9 +97,27 @@ def login():
         if user and check_password_hash(
             user["password_hash"], form.password.data
         ):
+            connection = get_connection()
+            try:
+                cursor = connection.cursor()
+                try:
+                    cursor.execute(
+                        "SELECT COUNT(*) FROM ratings WHERE user_id = %s",
+                        (user["user_id"],),
+                    )
+                    rating_count = cursor.fetchone()[0]
+                finally:
+                    cursor.close()
+            finally:
+                connection.close()
+
             session.clear()
             session["user_id"] = user["user_id"]
             session["username"] = user["username"]
+
+            if rating_count == 0:
+                return redirect(url_for("onboarding"))
+
             return redirect(url_for("dashboard"))
 
         error = "Invalid username or password."
@@ -197,6 +215,9 @@ def rate_song():
     finally:
         connection.close()
     
+    if request.form.get("source") == "onboarding":
+        return redirect(url_for("onboarding"))
+
     return redirect(url_for("dashboard"))
 
 
@@ -210,6 +231,64 @@ def logout():
         return redirect(url_for("home"))
 
     return "Invalid logout request.", 400
+
+@app.route("/onboarding", methods=["GET"])
+def onboarding():
+    if not session.get("user_id"):
+        return redirect(url_for("login"))
+    
+
+    sql = """
+            SELECT track_id, rating
+            FROM ratings
+            WHERE user_id = %s
+        """
+
+    values = (session["user_id"],)
+
+    connection = get_connection()
+    
+    try:
+        cursor = connection.cursor(dictionary=True)
+        try:
+            cursor.execute(sql, values)
+            user_ratings = cursor.fetchall()
+        finally:
+            cursor.close()
+    finally:
+        connection.close()
+
+    completed_count = sum(
+        1 for row in user_ratings
+        if row["rating"] >= 4
+    )
+
+    title_query = request.args.get("title","").strip()
+    artist_query = request.args.get("artist","").strip()
+    genre_query = request.args.get("genre","").strip()
+    results = []
+    search_error = None
+
+    if genre_query and genre_query not in available_genres:
+        search_error = "Please select an available genre."
+    elif artist_query or title_query or genre_query:
+        if not genre_query and len(artist_query) < 2 and len(title_query) < 2:
+            search_error = "Enter at least two characters in one field or select a genre."
+        else:
+            matches = search_songs(title_query, artist_query, genre_query)
+            results = matches.to_dict(orient="records")
+
+    return render_template(
+        "onboarding.html",
+        liked_count=completed_count,
+        title_query=title_query,
+        artist_query=artist_query,
+        genre_query=genre_query,
+        available_genres=available_genres,
+        results=results,
+        search_error=search_error,
+        rating_form=SongRatingForm(),
+    )
 
 if __name__ == "__main__":
     app.run(debug=True)

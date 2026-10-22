@@ -6,10 +6,10 @@ file_path = project_folder / "data" / "processed_1m" / "tracks_cleaned.csv"
 
 songs = pd.read_csv(
     file_path,
-    usecols=["track_id", "track_name", "artists"]
+    usecols=["track_id", "track_name", "artists", "track_genre"]
 )
 
-def search_songs(title_query, artist_query):
+def search_songs(title_query, artist_query, genre_query=""):
     matches = songs
 
     if title_query:
@@ -31,7 +31,8 @@ def search_songs(title_query, artist_query):
                 na=False,
             )
         ]
-
+    if genre_query:
+        matches = matches[matches["track_genre"] == genre_query]
     return matches.head(20)
 
 def track_exists(track_id):
@@ -79,3 +80,7 @@ def select_diverse_recommendations(recommendations, limit=10):
             break
 
     return selected
+
+available_genres = sorted(
+    songs["track_genre"].dropna().unique().tolist()
+)
