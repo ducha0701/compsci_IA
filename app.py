@@ -5,7 +5,7 @@ from flask_wtf.csrf import CSRFProtect
 from mysql.connector import IntegrityError
 from werkzeug.security import generate_password_hash, check_password_hash
 from catalogue import search_songs, track_exists, get_rated_songs, get_recommendation_details, select_diverse_recommendations, available_genres
-from personalization import recommend_tracks
+from personalization import recommend_tracks, MOOD_RANGES
 
 from forms import RegistrationForm, LoginForm, LogoutForm, SongRatingForm
 
@@ -149,8 +149,18 @@ def dashboard():
     finally:
         connection.close()
 
+    liked_count = sum(
+        1 for row in user_ratings
+        if row["rating"] >= 4
+    )
     rated_songs = get_rated_songs(user_ratings)
-    scored_tracks = recommend_tracks(user_ratings, use_clusters=True, limit=100)
+    strategy = request.args.get("strategy", "clusters")
+    if strategy not in ["baseline", "clusters"]:
+        strategy = "baseline"
+    mood = request.args.get("mood", "any mood")
+    if mood not in MOOD_RANGES:
+        mood = "any mood"
+    scored_tracks = recommend_tracks(user_ratings, use_clusters=(strategy == "clusters"), mood=mood, limit=100)
     recommendations = get_recommendation_details(scored_tracks)
     recommendations = select_diverse_recommendations(recommendations)
 
@@ -167,12 +177,16 @@ def dashboard():
             results = matches.to_dict(orient="records")
 
     return render_template(
-        "dashboard.html",title_query=title_query,
-        artist_query=artist_query,
-        results=results,
+        "dashboard.html",title_query = title_query,
+        artist_query = artist_query,
+        results = results,
         search_error = search_error,
         rated_songs = rated_songs,
         recommendations = recommendations,
+        strategy = strategy,
+        mood = mood,
+        available_moods = list(MOOD_RANGES),
+        liked_count=liked_count,
         rating_form=SongRatingForm(),
         logout_form=LogoutForm(),
     )

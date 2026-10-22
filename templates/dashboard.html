@@ -8,6 +8,7 @@
   <body>
     <h1>Welcome, {{ session["username"] }}</h1>
     <p>Your song search and ratings will appear here.</p>
+    <h2>Find songs to rate</h2>
     <form method="get" action="{{ url_for('dashboard') }}">
       <p>
         <label for="title">Song title</label>
@@ -23,6 +24,8 @@
           value="{{ artist_query }}"
         />
       </p>
+      <input type="hidden" name="strategy" value="{{ strategy }}" />
+      <input type="hidden" name="mood" value="{{ mood }}" />
       <button type="submit">Search</button>
     </form>
     {% if search_error %}
@@ -64,6 +67,37 @@
     <a href="{{ url_for('onboarding') }}">Set up your preferences</a>
 
     <h2>Recommended songs</h2>
+    <form method="get" action="{{ url_for('dashboard') }}">
+      <input type="hidden" name="title" value="{{ title_query }}" />
+      <input type="hidden" name="artist" value="{{ artist_query }}" />
+      <p>
+        <label for="strategy">Recommendation strategy</label>
+        <select id="strategy" name="strategy">
+          {% if strategy == "baseline" %}
+          <option value="baseline" selected>Average taste profile</option>
+          {% else %}
+          <option value="baseline">Average taste profile</option>
+          {% endif %} {% if strategy == "clusters" %}
+          <option value="clusters" selected>Taste clusters</option>
+          {% else %}
+          <option value="clusters">Taste clusters</option>
+          {% endif %}
+        </select>
+      </p>
+      <p>
+        <label for="mood">Recommendation mood</label>
+        <select id="mood" name="mood">
+          {% for mood_option in available_moods %} {% if mood_option == mood %}
+          <option value="{{ mood_option }}" selected>
+            {{ mood_option | title }}
+          </option>
+          {% else %}
+          <option value="{{ mood_option }}">{{ mood_option | title }}</option>
+          {% endif %} {% endfor %}
+        </select>
+      </p>
+      <button type="submit">Apply recommendations</button>
+    </form>
     {% if recommendations %}
     <ol>
       {% for song in recommendations %}
@@ -79,10 +113,10 @@
       </li>
       {% endfor %}
     </ol>
+    {% elif liked_count == 0 %}
+    <p>Rate at least one song 4 or 5 to receive recommendations.</p>
     {% else %}
-    <p>
-      Rate some songs highly (atleast a score of 4) to receive recommendations.
-    </p>
+    <p>No eligible recommendations for this mood. Try another mood.</p>
     {% endif %}
 
     <form method="post" action="{{ url_for('logout') }}">

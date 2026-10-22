@@ -3,6 +3,26 @@ import pandas as pd
 import numpy as np
 from sklearn.cluster import KMeans
 
+MOOD_RANGES = {
+    "happy": {
+        "energy": (0.5, 1.0),
+        "valence": (0.6, 1.0),
+    },
+    "chill": {
+        "energy": (0, 0.45),
+        "valence": (0, 1.0),
+    },
+    "sad": {
+        "energy": (0, 0.6),
+        "valence": (0, 0.35),
+    },
+    "any mood": {
+        "energy": (0, 1.0),
+        "valence": (0, 1.0),
+
+    }
+}
+
 def get_liked_track_ids(user_ratings):
     return [
         row["track_id"]
@@ -14,6 +34,11 @@ project_folder = Path(__file__).resolve().parent
 file_path = project_folder / "data" / "processed_1m" / "audio_features_scaled.csv"
 
 features = pd.read_csv(file_path)
+mood_file_path = project_folder / "data" / "processed_1m" / "tracks_cleaned.csv"
+mood_features = pd.read_csv(
+    mood_file_path,
+    usecols=["track_id", "energy", "valence"]
+)
 
 def get_liked_features(user_ratings):
     liked_ids = get_liked_track_ids(user_ratings)
@@ -67,11 +92,12 @@ def score_candidates(user_ratings):
 
         return candidates[["track_id", "similarity"]]
 
-def recommend_tracks(user_ratings, limit=10, use_clusters=False):
+def recommend_tracks(user_ratings, limit=10, use_clusters=False, mood="any mood"):
     if use_clusters == True:
         scored = score_clustered_candidates(user_ratings)
     else:
         scored = score_candidates(user_ratings)
+    scored = filter_by_mood(scored, mood)
     ranked = scored.sort_values(
         ["similarity", "track_id"],
         ascending=[False, True],
@@ -132,3 +158,22 @@ def score_clustered_candidates(user_ratings):
     candidates = candidates[lengths > 0].copy()
 
     return candidates[["track_id", "similarity"]]
+
+def filter_by_mood(scored_tracks, mood):
+    if mood not in MOOD_RANGES:
+        raise ValueError("Invalid mood")
+    elif mood == "any mood":
+        return scored_tracks
+
+    rules = MOOD_RANGES[mood]
+
+    matching = mood_features[
+        mood_features["energy"].between(*rules["energy"])
+        & mood_features["valence"].between(*rules["valence"])
+    ]
+
+    selected = scored_tracks[
+        scored_tracks["track_id"].isin(matching["track_id"])
+    ].copy()
+
+    return selected
