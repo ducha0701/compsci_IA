@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}SideTrack - Your Music Recommendation Engine{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header">
+      <div class="header-inner">
+        <a class="site-name" href="{{ url_for('home') }}">SideTrack - Your Music Recommendation Engine</a>
+        <nav aria-label="Main navigation">
+          {% if session.get('user_id') %}
+          <a href="{{ url_for('dashboard') }}">Dashboard</a>
+          <a href="{{ url_for('onboarding') }}">Preference setup</a>
+          {% else %}
+          <a href="{{ url_for('login') }}">Log in</a>
+          <a href="{{ url_for('register') }}">Create account</a>
+          {% endif %}
+        </nav>
+      </div>
+    </header>
+    <main id="main" class="page {% block page_class %}{% endblock %}">
+      {% block content %}{% endblock %}
+    </main>
+    <footer class="site-footer">SideTrack - Your Music Recommendation Engine &middot; Computer Science IA</footer>
+  </body>
+</html>

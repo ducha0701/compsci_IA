@@ -1,20 +1,27 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Music Recommender</title>
-  </head>
-  <body>
-    <h1>Music Recommender</h1>
-    <p>Discover songs based on your musical preferences.</p>
-    <p><a href="{{ url_for('register') }}">Create account</a></p>
-    {% if session.get("user_id") %}
-    <p>Logged in as {{ session["username"] }}.</p>
-    <p><a href="{{ url_for('dashboard') }}">Your dashboard</a></p>
-    {% else %}
-    <p><a href="{{ url_for('login') }}">Log in</a></p>
-    {% endif %}
-    <p>Registered users: {{ user_count }}</p>
-  </body>
-</html>
+{% extends "base.html" %}
+{% block title %}SideTrack - Your Music Recommendation Engine{% endblock %}
+{% block page_class %}home-page{% endblock %}
+{% block content %}
+<div class="home-intro">
+<h1>Find your next song.</h1>
+<p class="intro">Recommendations based on the songs you enjoy. Rate familiar tracks, explore suggestions and refine your preferences as you listen.</p>
+<div class="home-actions">
+{% if session.get('user_id') %}
+<a class="button-link" href="{{ url_for('dashboard') }}">Open your dashboard</a>
+<a href="{{ url_for('onboarding') }}">Set up your preferences</a>
+{% else %}
+<a class="button-link" href="{{ url_for('register') }}">Create account</a>
+<a href="{{ url_for('login') }}">Already have an account? Log in</a>
+{% endif %}
+</div></div>
+<section class="section">
+<h2>How it works</h2>
+<ol class="steps">
+<li><strong>Rate songs you know.</strong> Search by title or artist and save a rating from 1 to 5.</li>
+<li><strong>Explore your recommendations.</strong> Compare an average taste profile with taste clusters, and optionally filter by mood.</li>
+<li><strong>Refine your preferences.</strong> Rate the suggestions to help shape the next list.</li>
+</ol>
+<p class="small-note">The catalogue is a fixed dataset, so some songs may not be available. Mood filters use audio-feature ranges and may not match every listener's interpretation.</p>
+<p class="small-note">Registered accounts: {{ user_count }}</p>
+</section>
+{% endblock %}

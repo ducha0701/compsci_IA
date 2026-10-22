@@ -1,0 +1,111 @@
+@font-face {
+  font-family: "Audio Sans";
+  src: url("audio-sans-font-family/audiosans400.otf") format("opentype");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Audio Sans";
+  src: url("audio-sans-font-family/audiosans500.otf") format("opentype");
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Audio Sans";
+  src: url("audio-sans-font-family/audiosans600.otf") format("opentype");
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Audio Sans";
+  src: url("audio-sans-font-family/audiosans700.otf") format("opentype");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Audio Sans";
+  src: url("audio-sans-font-family/audiosans800.otf") format("opentype");
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Audio Sans";
+  src: url("audio-sans-font-family/audiosans900.otf") format("opentype");
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+}
+
+/* Shared page layout and colours. */
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+body { margin: 0; background: #101116; color: #edf0f7; font: 16px/1.6 "Audio Sans", Helvetica, sans-serif; }
+a { color: #91b5ff; text-underline-offset: 3px; }
+a:hover { color: #c0b2ff; }
+.site-header { background: #171a23; border-bottom: 1px solid #353945; }
+.header-inner { max-width: 1080px; margin: auto; padding: 20px 28px; display: flex; justify-content: space-between; align-items: center; gap: 20px; }
+.site-name { font-size: 19px; font-weight: bold; color: #edf0f7; text-decoration: none; }
+nav { display: flex; flex-wrap: wrap; gap: 24px; }
+nav a { font-size: 14px; }
+.page { max-width: 1000px; margin: 36px auto 60px; padding: 0 28px; min-height: 65vh; }
+h1 { font-size: 29px; line-height: 1.25; margin: 0 0 12px; }
+h2 { font-size: 21px; margin: 0 0 18px; line-height: 1.3; }
+p { margin: 0 0 16px; }
+.intro { color: #b4bdcf; max-width: 680px; margin-bottom: 28px; }
+.section { border-top: 1px solid #353945; padding-top: 26px; margin-top: 30px; }
+.site-footer { max-width: 1024px; margin: auto; padding: 20px 28px 30px; color: #afb8ca; font-size: 13px; border-top: 1px solid #353945; }
+/* Inputs share the same dimensions on every page. */
+label { display: block; font-size: 14px; font-weight: bold; margin-bottom: 6px; }
+input:not([type=hidden]):not([type=submit]), select { font: inherit; color: inherit; border: 1px solid #626c81; border-radius: 3px; background: #171a23; padding: 9px 11px; min-height: 43px; max-width: 100%; width: 100%; }
+button, input[type=submit], .button-link { display: inline-block; border: 1px solid #345ac7; border-radius: 3px; padding: 10px 17px; min-height: 43px; background: #345ac7; color: white; font: bold 14px/1.5 "Audio Sans", sans-serif; text-decoration: none; cursor: pointer; }
+button:hover, input[type=submit]:hover, .button-link:hover { background: #2949a8; color: #fff; }
+:focus-visible { outline: 3px solid #b8a2ff; outline-offset: 3px; }
+.search-form, .settings-form { display: flex; align-items: end; flex-wrap: wrap; gap: 16px; padding: 20px; background: #1a1d28; border: 1px solid #353945; border-radius: 3px; margin-bottom: 20px; }
+.search-form > p, .settings-form > p { flex: 1 1 180px; margin: 0; }
+.search-form button, .settings-form button { flex: 0 0 auto; }
+[role=alert] { color: #ffb6b0; border-left: 3px solid #d77e79; padding: 8px 12px; background: #341e27; }
+/* Song rows stay compact, with room for long titles. */
+.song-list { margin: 16px 0 22px; padding: 0; list-style: none; }
+.song-list > li { border-bottom: 1px solid #353945; padding: 16px 0; overflow-wrap: anywhere; }
+ol.song-list { list-style: decimal; padding-left: 25px; }
+ol.song-list > li { padding-left: 7px; }
+.rating-form { display: flex; gap: 9px; align-items: center; margin-top: 9px; }
+.rating-form select { width: 72px; min-height: 36px; padding: 5px 9px; }
+.rating-form input[type=submit] { min-height: 36px; padding: 6px 13px; font-weight: normal; }
+.auth-page { max-width: 510px; }
+.auth-form { margin: 25px 0; padding: 24px; background: #171a23; border: 1px solid #353945; border-radius: 3px; }
+.auth-form br { display: none; }
+.progress-note { padding: 12px 16px; background: #252039; border-left: 3px solid #a28adf; margin-bottom: 18px; }
+.logout-form { margin-top: 32px; padding-top: 20px; border-top: 1px solid #353945; }
+.logout-form input[type=submit] { background: transparent; color: #a9c1ff; }
+.home-page { max-width: 800px; }
+.home-intro { padding: 28px 0 14px; }
+.home-actions { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; margin: 24px 0; }
+.steps { padding-left: 22px; }
+.steps li { margin-bottom: 14px; }
+.small-note { font-size: 14px; color: #afb8ca; }
+.skip-link { position: absolute; top: -80px; padding: 10px; background: #171a23; }
+.skip-link:focus { top: 0; }
+@media (max-width: 600px) {
+  .header-inner { align-items: flex-start; flex-direction: column; padding: 16px 20px; gap: 10px; }
+  nav { gap: 18px; }
+  .page { margin-top: 26px; padding: 0 20px; }
+  h1 { font-size: 25px; }
+  .search-form, .settings-form { padding: 16px; gap: 14px; }
+  .search-form > p, .settings-form > p { flex-basis: 100%; }
+  .search-form button, .settings-form button { width: 100%; }
+  .auth-form { padding: 18px; }
+}
+
+h2 { color: #c4b5ef; }
+.logout-form input[type=submit]:hover { color: #fff; background: #2949a8; }

@@ -1,14 +1,11 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Create account</title>
-  </head>
-  <body>
-    <h1>Create account</h1>
+{% extends "base.html" %}
+{% block title %}Create account{% endblock %}
+{% block page_class %}auth-page{% endblock %}
+{% block content %}
+<h1>Create account</h1>
+<p class="intro">Choose a username with 3 to 50 letters, numbers or underscores, and a password with 12 to 128 characters.</p>
 
-    <form method="post">
+    <form class="auth-form" method="post">
       {{ form.hidden_tag() }} {% for field in [ form.username, form.password,
       form.confirm_password ] %}
       <p>
@@ -22,5 +19,4 @@
     </form>
 
     <p><a href="{{ url_for('home') }}">Back to home</a></p>
-  </body>
-</html>
+{% endblock %}

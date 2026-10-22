@@ -1,15 +1,12 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Your dashboard</title>
-  </head>
-  <body>
-    <h1>Welcome, {{ session["username"] }}</h1>
-    <p>Your song search and ratings will appear here.</p>
-    <h2>Find songs to rate</h2>
-    <form method="get" action="{{ url_for('dashboard') }}">
+{% extends "base.html" %}
+{% block title %}Your dashboard{% endblock %}
+{% block page_class %}{% endblock %}
+{% block content %}
+<h1>Welcome, {{ session["username"] }}</h1>
+    <p>Search for songs to rate, review your preferences and explore recommendations.</p>
+    <section class="section" aria-labelledby="search-heading">
+<h2 id="search-heading">Find songs to rate</h2>
+    <form class="search-form" method="get" action="{{ url_for('dashboard') }}">
       <p>
         <label for="title">Song title</label>
         <input id="title" name="title" type="text" value="{{ title_query }}" />
@@ -31,11 +28,11 @@
     {% if search_error %}
     <p role="alert">{{ search_error }}</p>
     {% elif results %}
-    <ul>
+    <ul class="song-list">
       {% for song in results %}
       <li>
         {{ song["track_name"] }} — {{ song["artists"] }}
-        <form method="post" action="{{ url_for('rate_song') }}">
+        <form class="rating-form" method="post" action="{{ url_for('rate_song') }}">
           {{ rating_form.csrf_token }} {{
           rating_form.track_id(value=song["track_id"], id=False) }} {{
           rating_form.score(id=False, aria_label="Your score") }} {{
@@ -50,10 +47,12 @@
 
     {% endif %}
 
-    <h2>My ratings</h2>
+    </section>
+<section class="section" aria-labelledby="ratings-heading">
+<h2 id="ratings-heading">My ratings</h2>
 
     {% if rated_songs %}
-    <ul>
+    <ul class="song-list">
       {% for song in rated_songs %}
       <li>
         {{ song["track_name"] }} — {{ song["artists"] }} — {{ song["rating"]
@@ -66,8 +65,11 @@
     {% endif %}
     <a href="{{ url_for('onboarding') }}">Set up your preferences</a>
 
-    <h2>Recommended songs</h2>
-    <form method="get" action="{{ url_for('dashboard') }}">
+    </section>
+<section class="section" aria-labelledby="recommendations-heading">
+<h2 id="recommendations-heading">Recommended songs</h2>
+<p class="small-note">Choose a strategy and an optional mood. Rate a suggestion to update your preferences.</p>
+    <form class="settings-form" method="get" action="{{ url_for('dashboard') }}">
       <input type="hidden" name="title" value="{{ title_query }}" />
       <input type="hidden" name="artist" value="{{ artist_query }}" />
       <p>
@@ -99,12 +101,12 @@
       <button type="submit">Apply recommendations</button>
     </form>
     {% if recommendations %}
-    <ol>
+    <ol class="song-list">
       {% for song in recommendations %}
       <li>
         {{ song["track_name"] }} — {{ song["artists"] }}
 
-        <form method="post" action="{{ url_for('rate_song') }}">
+        <form class="rating-form" method="post" action="{{ url_for('rate_song') }}">
           {{ rating_form.csrf_token }} {{
           rating_form.track_id(value=song["track_id"], id=False) }} {{
           rating_form.score(id=False, aria_label="Your rating") }} {{
@@ -119,10 +121,10 @@
     <p>No eligible recommendations for this mood. Try another mood.</p>
     {% endif %}
 
-    <form method="post" action="{{ url_for('logout') }}">
+    </section>
+<form class="logout-form" method="post" action="{{ url_for('logout') }}">
       {{ logout_form.hidden_tag() }} {{ logout_form.submit() }}
     </form>
 
     <p><a href="{{ url_for('home') }}">Home</a></p>
-  </body>
-</html>
+{% endblock %}
